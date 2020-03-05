@@ -12,6 +12,7 @@ public class Tile {
     protected int weight;                                  // weight of the tile 0-10, 10 being impassable, 0 being teleport
     private String weightStr;                              // weight represented as a String
     private boolean pathTile;                              // True, if tile is apart of the shortest path
+    private boolean tpTile;                                // True, if tile is a teleport tile
 
 
     /**
@@ -21,6 +22,7 @@ public class Tile {
     public Tile(String type){
         tileID = this.toString().substring(25);
         pathTile = false;
+        tpTile = false;
         if(type.equals("F")) {
             this.weight = INPASSABLE_WEIGHT;
             this.weightStr = type;
@@ -29,6 +31,7 @@ public class Tile {
         if(type.substring(0,1).equals("T")){
             this.weight = 0;
             this.weightStr = type;
+            this.tpTile = true;
             return;
         }
         this.weight = Integer.parseInt(type);
@@ -85,6 +88,21 @@ public class Tile {
         if(pathTile) {
             sr.begin(ShapeRenderer.ShapeType.Filled);
             sr.setColor(.133f, .545f, .133f, 1); // Set Color to forest green
+            sr.rect(x * tileWidth, y * tileHeight, tileWidth, tileHeight);
+            sr.end();
+
+            // Draw numbers
+            /*batch.begin();
+            font.setColor(1,1,1,1);
+            font.getData().setScale(2f);
+            font.draw(batch,weightStr, x * tileWidth + (tileWidth/2f), y * tileHeight + (tileHeight/2f));
+            batch.end();*/
+            return;
+        }
+
+        if(tpTile) {
+            sr.begin(ShapeRenderer.ShapeType.Filled);
+            sr.setColor(.125f, .698f, .67f, 1); // Set Color to forest green
             sr.rect(x * tileWidth, y * tileHeight, tileWidth, tileHeight);
             sr.end();
 

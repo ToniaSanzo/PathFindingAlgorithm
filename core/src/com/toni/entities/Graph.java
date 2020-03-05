@@ -1,6 +1,7 @@
 package com.toni.entities;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Stack;
 
@@ -10,7 +11,7 @@ public class Graph {
     public static class Vertex {
         private Tile elem;            // The element contained within this entry
         private Tile [] neighborhood; // Array of Vertices with an edge to this Tile
-        private int dist;             // Measure's the current Distance between this Vertex and the source
+        private double dist;          // Measure's the current Distance between this Vertex and the source
         private Vertex prev;          // Store current path to source in memory
 
         /**
@@ -35,13 +36,14 @@ public class Graph {
     }
 
     private ArrayList<Vertex> graphElements; // Every element in the graph
+    int rows, cols;                           // Specifies the rows and cols of a graph
 
     /**
      * Create a Graph from an array of Tile's and the indices of the Tile's neighbors
      * @param tiles All Tiles in the Grid
      * @param nArr Indices of the Tile's neighbors
      */
-    public Graph(Tile [] tiles, ArrayList<Integer> [] nArr){
+    public Graph(Tile [] tiles, ArrayList<Integer> [] nArr, int rows, int cols){
         graphElements = new ArrayList<Vertex>(); // Instantiate the graphElements collection
         Vertex tVertex;                          // Temporary Entry;
 
@@ -54,6 +56,8 @@ public class Graph {
                 System.out.print(nArr[i].get(j) + " ");
             }
             graphElements.add(tVertex);
+            this.rows = rows;           // Number of rows in the graph
+            this.cols = cols;           // Number of cols in the graph
         }
     }
 
@@ -73,6 +77,111 @@ public class Graph {
 
     /**
      * Given a source and a target, will determine the shortest path between these two Tiles. Shortest-Path is
+     * determined by a* pathfinding algorithm
+     *
+     * @param source Tile object, where the path will start
+     * @param target Tile objects, where the path will end
+     * @return Shortest-Path
+     */
+    public Stack<Vertex> aStar(Tile source, Tile target){
+        FibonacciHeap<Vertex> open = new FibonacciHeap<>(); // The set of nodes to be evaluated
+        HashSet<Tile> elemInOpen   = new HashSet<Tile>();      // The set of nodes in open
+        HashSet<Tile> closed       = new HashSet<Tile>();      // The set of nodes to be evaluated
+        Stack<Vertex> path         = new Stack<Vertex>();        // Return Variable, stack of the shortest-path Vertex
+        Vertex cVertex;                                     // Current Vertex
+        Vertex nVertex;                                     // Neighbor Vertex
+        double altDist;                                     // Elements new distance
+        int nInd;                                           // Neighbor index
+        int [] tCoor = new int[2];                          // Target coordinates
+
+        if(source.weight == Tile.INPASSABLE_WEIGHT || target.weight == Tile.INPASSABLE_WEIGHT){ return null; }
+
+        // Prepare the graph elements for a* algorithm
+        for(int i = 0; i < graphElements.size(); i++){
+            cVertex = graphElements.get(i);  // Temporarily store the Vertex, for editing
+
+            // Branch-Statement: if the Vertex matches the source apply a special condition, otherwise apply the default
+            if(equals(cVertex, source)){
+                // Source special condition
+                for(int j = 0; j < graphElements.size(); j++) {
+                    // Find targets graphElements index
+                    if(equals(graphElements.get(j), target)) {
+                        tCoor = getXYCoordinate(j);
+                        // Determine the distance between the start and finish positions
+                        cVertex.dist = distance(getXYCoordinate(i), tCoor);
+                    }
+                }
+                cVertex.prev = null;
+                open.enqueue(cVertex, cVertex.dist);
+                elemInOpen.add(cVertex.getValue());
+            } else {
+                // Default condition
+                cVertex.dist = Integer.MAX_VALUE;
+                cVertex.prev = null;
+            }
+
+            // Update the graph elements
+            graphElements.remove(i);
+            graphElements.add(i, cVertex);
+        }
+
+
+        while(true){
+            cVertex = open.dequeueMin().getValue();      // currVertex = node in open with the lowest f_cost
+            elemInOpen.remove(cVertex.getValue());       // Remove currVertex from open
+            closed.add(cVertex.elem);                    // add currVertex to the closed collection
+
+            // If current vertex equals the target the path has been found
+            if(equals(cVertex, target)){
+                if(cVertex.prev != null || equals(cVertex, source)){
+                    while(cVertex != null){
+                        path.push(cVertex);
+                        cVertex = cVertex.prev;
+                    }
+                }
+                return path;
+            }
+
+            for(Tile nTile: cVertex.getNeighborhood()){
+                // If the neighbor is in closed skip to the next neighbor
+                if(closed.contains(nTile)){ continue; }
+                nInd = indexOfGElements(nTile);
+                nVertex = graphElements.get(nInd);
+
+                // Determine the altDistance of the neighborTile
+                altDist = cVertex.dist + nTile.weight + distance(getXYCoordinate(nInd), tCoor);
+
+                // if new path to neighbor is shorter OR neighbor is not in open
+                if(nVertex.dist > altDist | !elemInOpen.contains(nTile)){
+                    nVertex.dist = altDist; // Set f_cost of neighbor
+                    nVertex.prev = cVertex; // Set parent of neighbor
+
+                    // Update graphElements
+                    graphElements.remove(nInd);
+                    graphElements.add(nInd, nVertex);
+
+
+
+                    if(elemInOpen.contains(nTile)){
+                        try {
+                            open = decreasePriority(nVertex, open);
+                        } catch(NoSuchElementException ex){
+                            ex.printStackTrace();
+                            return null;
+                        }
+                    } else {
+                        // Add the neighbor to open
+                        open.enqueue(nVertex,nVertex.dist);
+                        elemInOpen.add(nVertex.getValue());
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Given a source and a target, will determine the shortest path between these two Tiles. Shortest-Path is
      * determined by Dijkstra's algorithm.
      *
      * @param source Tile object, where the path will start
@@ -85,7 +194,7 @@ public class Graph {
                                                                             // path between the objects.
         Vertex tVertex;                                                     // Temp Vertex.
         Vertex nVertex;                                                     // Neighbor Vertex.
-        int altDist;                                                        // Used to store the alternative distance
+        double altDist;                                                     // Used to store the alternative distance
                                                                             // from the source.
         int nInd;                                                           // Temp index of the neighbors position in
                                                                             // graphElements.
@@ -196,6 +305,55 @@ public class Graph {
 
         // Return the updated heap
         return tHeap;
+    }
+
+    /**
+     * Determine a graphElements index x & y-coordinate
+     * @param index the index of the element that's being searched for in the graph
+     * @return the XY coordinate of the graph element
+     */
+    private int [] getXYCoordinate(int index){
+        int [] xy = new int [2];
+
+        // Determine the y-coordinate
+        for(int i = 0; i < rows; i++) {
+            if (i * cols <= index && index > (i + 1) * cols) { xy[1] = i; }
+        }
+
+        xy[0] = index - cols * xy[1];
+        return xy;
+    }
+
+    /**
+     * Pythagorean theorem to determine the distance between any two XY coordinates
+     *
+     * @param cA xy-coordinates of node A
+     * @param cB xy-coordinates of nobe B
+     * @return returns the distance between any 2 points
+     */
+    public double distance(int [] cA, int [] cB){
+        double a2, b2, c2; // a^2 + b^2 = c^2
+
+        // Determine the square of adjacent side
+        a2 = 5 * (cA[0] - cB[0]);
+        a2 = a2 * a2;
+        System.out.print("\ncoordinate-1 (" + cA[0] + ", " + cA[1] + ")\ncoordinate-2 (" + cB[0] + ", " + cB[1] +
+                ")\n a^2: " + a2);
+
+
+        // Determine the square of opposite side
+        b2 =5 *  (cA[1] - cB[1]);
+        b2 = b2 * b2;
+
+        System.out.print(" b^2: " + b2);
+
+        // Determine square of the hypotenuse
+        c2 = a2 + b2;
+        System.out.print(" c^2: " + c2 + " return Value: " + (Math.sqrt(c2)));
+
+
+        // Return the hypotenuse
+        return Math.sqrt(c2);
     }
 
     /**

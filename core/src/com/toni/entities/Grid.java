@@ -148,7 +148,8 @@ public class Grid {
             Graph.Vertex vertex;
             trgt = tiles[colCoor][rowCoor];
             setTrgt = false;
-            Stack<Graph.Vertex> vertexStack = graph.dijkstra(src, trgt);
+            Stack<Graph.Vertex> vertexStack = graph.aStar(src, trgt);
+            //Stack<Graph.Vertex> vertexStack = graph.dijkstra(src, trgt);
             while(vertexStack != null && !vertexStack.isEmpty()){
                 vertex = vertexStack.pop();
                 for(int y1 = 0; y1 < rows; y1++){
@@ -302,7 +303,7 @@ public class Grid {
                 }
             }
         }
-        graph = new Graph(tiles1D, nPos);
+        graph = new Graph(tiles1D, nPos, rows, cols);
     }
 
 
