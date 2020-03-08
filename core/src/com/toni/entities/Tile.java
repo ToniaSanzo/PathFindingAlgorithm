@@ -75,7 +75,7 @@ public class Tile {
         if(slctd) {
             sr.begin(ShapeRenderer.ShapeType.Filled);
             sr.setColor(.722f, .525f, .043f, 1); // Set Color to dark golden rod
-            sr.rect((xpos + x) * tileWidth, (ypos + y) * tileHeight, tileWidth, tileHeight);
+            sr.rect((x * tileWidth) + xpos, (y * tileHeight) + ypos, tileWidth, tileHeight);
             sr.end();
 
             // Draw numbers
@@ -91,7 +91,7 @@ public class Tile {
         if(pathTile) {
             sr.begin(ShapeRenderer.ShapeType.Filled);
             sr.setColor(.133f, .545f, .133f, 1); // Set Color to forest green
-            sr.rect((xpos + x) * tileWidth, (ypos + y) * tileHeight, tileWidth, tileHeight);
+            sr.rect((x * tileWidth) + xpos, (y * tileHeight) + ypos, tileWidth, tileHeight);
             sr.end();
 
             // Draw numbers
@@ -106,7 +106,7 @@ public class Tile {
         if(tpTile) {
             sr.begin(ShapeRenderer.ShapeType.Filled);
             sr.setColor(.125f, .698f, .67f, 1); // Set Color to forest green
-            sr.rect((xpos + x) * tileWidth, (ypos + y) * tileHeight, tileWidth, tileHeight);
+            sr.rect((x * tileWidth) + xpos, (y * tileHeight) + ypos, tileWidth, tileHeight);
             sr.end();
 
             // Draw numbers
@@ -169,7 +169,7 @@ public class Tile {
 
 
 
-        sr.rect((xpos + x) * tileWidth, (ypos + y) * tileHeight, tileWidth, tileHeight);
+        sr.rect((x * tileWidth) + xpos, (y * tileHeight) + ypos, tileWidth, tileHeight);
         sr.end();
 
         // Draw Numbers

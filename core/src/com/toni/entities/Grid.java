@@ -119,12 +119,12 @@ public class Grid {
 
             // Determine x-index
             for(int i = 0; i < cols; i++){
-                if((float)i <= x && x < (float)i + 1f){ colCoor = i - (int)xpos; }
+                if((float)i <= x && x < (float)i + 1f){ colCoor = i; }
             }
 
             // Determine y-index
             for(int j = 0; j < rows; j++){
-                if((float)j <= y && y < (float)j + 1f){ rowCoor = j - (int)ypos; }
+                if((float)j <= y && y < (float)j + 1f){ rowCoor = j; }
             }
 
 
@@ -142,12 +142,12 @@ public class Grid {
             float y = v3.y/tileHeight;
             // Determine x-index
             for(int i = 0; i < cols; i++){
-                if((float)i <= x && x < (float)i + 1f) { colCoor = i - (int)xpos; }
+                if((float)i <= x && x < (float)i + 1f) { colCoor = i; }
             }
 
             // Determine y-index
             for(int j = 0; j < rows; j++){
-                if(((float)j <= y) && y <= (float)j + 1f){ rowCoor = j - (int)ypos; }
+                if(((float)j <= y) && y <= (float)j + 1f){ rowCoor = j; }
             }
 
             if((colCoor < 0 || colCoor > cols) || (rowCoor < 0 || rowCoor > rows) ){ return; }

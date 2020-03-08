@@ -58,7 +58,7 @@ public class Game extends ApplicationAdapter {
 	public void resume() {}
 
 	@Override
-	public void resize(int width, int height) {}
+	public void resize(int width, int height){}
 
 	@Override
 	public void dispose () {}
