@@ -1,6 +1,7 @@
 package com.toni.gamestate;
 
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.toni.Game;
 import com.toni.entities.Grid;
 import com.toni.managers.GameKeys;
 import com.toni.managers.GameStateManager;
@@ -43,6 +44,7 @@ public class PlayState extends GameState {
 
     // Method to interact with GameKeys
     public void handleInput(){
+        // Handle mouse clicks
         if(GameKeys.isNewCoor()){ grid.getTile(GameKeys.getCoor()); }
     }
 

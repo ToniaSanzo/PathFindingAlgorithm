@@ -35,30 +35,36 @@ public class Graph {
         public Tile[] getNeighborhood(){ return neighborhood; }
     }
 
-    private ArrayList<Vertex> graphElements; // Every element in the graph
-    int rows, cols;                           // Specifies the rows and cols of a graph
+    private Vertex [][] graphElements; // 2-D array list
+    int rows, cols;                    // Specifies the rows and cols of a graph
 
     /**
      * Create a Graph from an array of Tile's and the indices of the Tile's neighbors
      * @param tiles All Tiles in the Grid
      * @param nArr Indices of the Tile's neighbors
      */
-    public Graph(Tile [] tiles, ArrayList<Integer> [] nArr, int rows, int cols){
-        graphElements = new ArrayList<Vertex>(); // Instantiate the graphElements collection
+    public Graph(Tile [][] tiles, ArrayList<Coordinate> [][] nArr, int rows, int cols){
+        this.rows = rows;                        // Number of rows in the 2D array
+        this.cols = cols;                        // Number of columns in the 2D array
         Vertex tVertex;                          // Temporary Entry;
+        graphElements = new Vertex[cols][rows];  // Instantiate the 2D graph element array
 
         // Initialize Vertex containers of Tiles, each Vertex containing a Tile, and the Tile's neighborhood
-        for(int i = 0; i < tiles.length; i++){
-            // Add the Vertex to the graphElements
-            tVertex = new Vertex(tiles[i], toTileArray(nArr[i], tiles));
-            System.out.print("\ntile[" + i +"] Neighborhood ");
-            for(int j = 0; j < nArr[i].size(); j++){
-                System.out.print(nArr[i].get(j) + " ");
+        for(int x = 0; x < cols; x++){
+            for(int y = 0; y < rows; y++) {
+                // Add the Vertex to the graphElements
+                tVertex = new Vertex(tiles[x][y], toTileArray(nArr[x][y], tiles));
+                graphElements[x][y] = tVertex;
+                System.out.println("graphElements[" + x + "][" + y + "]: " + graphElements[x][y].getValue().tileID +
+                        " Neighborhood: ");
+                for(int i = 0; i < graphElements[x][y].neighborhood.length; i++ ){
+                    System.out.print(graphElements[x][y].neighborhood[i] + " ");
+                }
             }
-            graphElements.add(tVertex);
-            this.rows = rows;           // Number of rows in the graph
-            this.cols = cols;           // Number of cols in the graph
         }
+
+        this.rows = rows;           // Number of rows in the graph
+        this.cols = cols;           // Number of cols in the graph
     }
 
     /**
@@ -67,10 +73,12 @@ public class Graph {
      * @param tiles Array of Tiles
      * @return Array of Tiles, indexed by arrayList
      */
-    public static Tile[] toTileArray(ArrayList<Integer> arrayList, Tile [] tiles){
+    public static Tile[] toTileArray(ArrayList<Coordinate> arrayList, Tile [][] tiles){
         Tile [] convertedArray = new Tile[arrayList.size()]; // New Tile array, for the neighborhood to be inserted into
-        // Transfer ArrayList into the array
-        for(int i = 0; i < convertedArray.length; i++){ convertedArray[i] = tiles[arrayList.get(i)]; }
+        // Transfer ArrayList into the 2D array
+        for(int i = 0; i < convertedArray.length; i++){
+            convertedArray[i] = tiles[arrayList.get(i).getX()][arrayList.get(i).getY()];
+        }
         return convertedArray;
     }
 
@@ -91,38 +99,45 @@ public class Graph {
         Vertex cVertex;                                     // Current Vertex
         Vertex nVertex;                                     // Neighbor Vertex
         double altDist;                                     // Elements new distance
-        int nInd;                                           // Neighbor index
+        Coordinate nCoor;                                   // Neighbor coordinate
         int [] tCoor = new int[2];                          // Target coordinates
 
         if(source.weight == Tile.INPASSABLE_WEIGHT || target.weight == Tile.INPASSABLE_WEIGHT){ return null; }
 
         // Prepare the graph elements for a* algorithm
-        for(int i = 0; i < graphElements.size(); i++){
-            cVertex = graphElements.get(i);  // Temporarily store the Vertex, for editing
+        for(int x = 0; x < cols; x++){
+            for(int y = 0; y < rows; y++) {
+                cVertex = graphElements[x][y];  // Temporarily store the Vertex, for editing
 
-            // Branch-Statement: if the Vertex matches the source apply a special condition, otherwise apply the default
-            if(equals(cVertex, source)){
-                // Source special condition
-                for(int j = 0; j < graphElements.size(); j++) {
-                    // Find targets graphElements index
-                    if(equals(graphElements.get(j), target)) {
-                        tCoor = getXYCoordinate(j);
-                        // Determine the distance between the start and finish positions
-                        cVertex.dist = distance(getXYCoordinate(i), tCoor);
+                // Branch-Statement: if the Vertex matches the source apply a special condition,
+                //                   otherwise apply the default
+                if (equals(cVertex, source)) {
+                    // Source special condition
+                    for(int x1 = 0; x1 < cols; x1++){
+                        for(int y1 = 0; y1 < rows; y1++){
+                            // Find targets graphElements index
+                            if(equals(graphElements[x][y], target)){
+                                tCoor[0] = x1;
+                                tCoor[1] = y1;
+                                // Determine the distance between the start and finish positions
+                                cVertex.dist = distance(new Coordinate(x, y), new Coordinate(tCoor[0], tCoor[1]));
+                            }
+
+                        }
                     }
-                }
-                cVertex.prev = null;
-                open.enqueue(cVertex, cVertex.dist);
-                elemInOpen.add(cVertex.getValue());
-            } else {
-                // Default condition
-                cVertex.dist = Integer.MAX_VALUE;
-                cVertex.prev = null;
-            }
 
-            // Update the graph elements
-            graphElements.remove(i);
-            graphElements.add(i, cVertex);
+                    cVertex.prev = null;
+                    open.enqueue(cVertex, cVertex.dist);
+                    elemInOpen.add(cVertex.getValue());
+                } else {
+                    // Default condition
+                    cVertex.dist = Integer.MAX_VALUE;
+                    cVertex.prev = null;
+                }
+
+                // Update the graph elements
+                graphElements[x][y] = cVertex;
+            }
         }
 
 
@@ -145,11 +160,11 @@ public class Graph {
             for(Tile nTile: cVertex.getNeighborhood()){
                 // If the neighbor is in closed skip to the next neighbor
                 if(closed.contains(nTile)){ continue; }
-                nInd = indexOfGElements(nTile);
-                nVertex = graphElements.get(nInd);
+                nCoor = coorOfGElements(nTile);
+                nVertex = graphElements[nCoor.getX()][nCoor.getY()];
 
                 // Determine the altDistance of the neighborTile
-                altDist = cVertex.dist + nTile.weight + distance(getXYCoordinate(nInd), tCoor);
+                altDist = cVertex.dist + nTile.weight + distance(nCoor, new Coordinate(tCoor[0], tCoor[1]));
 
                 // if new path to neighbor is shorter OR neighbor is not in open
                 if(nVertex.dist > altDist | !elemInOpen.contains(nTile)){
@@ -157,10 +172,7 @@ public class Graph {
                     nVertex.prev = cVertex; // Set parent of neighbor
 
                     // Update graphElements
-                    graphElements.remove(nInd);
-                    graphElements.add(nInd, nVertex);
-
-
+                    graphElements[nCoor.getX()][nCoor.getY()] = nVertex;
 
                     if(elemInOpen.contains(nTile)){
                         try {
@@ -196,32 +208,33 @@ public class Graph {
         Vertex nVertex;                                                     // Neighbor Vertex.
         double altDist;                                                     // Used to store the alternative distance
                                                                             // from the source.
-        int nInd;                                                           // Temp index of the neighbors position in
+        Coordinate nCoor;                                                   // Temp index of the neighbors position in
                                                                             // graphElements.
 
         if(source.weight == Tile.INPASSABLE_WEIGHT || target.weight == Tile.INPASSABLE_WEIGHT){ return null; }
 
         // Prepare the graph elements for Dijkstra's algorithm
-        for(int i = 0; i < graphElements.size(); i++){
-            tVertex = graphElements.get(i);  // Temporarily store the Vertex, for editing
+        for(int x = 0; x < cols; x++){
+            for(int y = 0; y < rows; y++){
+                tVertex = graphElements[x][y]; // Temporarily store the Vertex, for editing
 
-            // Branch-Statement: if the Vertex matches the source apply a special condition, otherwise apply the default
-            if(equals(tVertex, source)){
-                // Source special condition
-                tVertex.dist = 0;
-                tVertex.prev = null;
-            } else {
-                // Default condition
-                tVertex.dist = Integer.MAX_VALUE;
-                tVertex.prev = null;
+                // Branch-Statement: if the Vertex matches the source apply a special condition, otherwise apply the default
+                if(equals(tVertex, source)){
+                    // Source special condition
+                    tVertex.dist = 0;
+                    tVertex.prev = null;
+                } else {
+                    // Default condition
+                    tVertex.dist = Integer.MAX_VALUE;
+                    tVertex.prev = null;
+                }
+
+                // Update the graph elements
+                graphElements[x][y] = tVertex;
+
+                // Add the temporary Vertex to the priority queue
+                priorityQueue.enqueue(tVertex, tVertex.dist);
             }
-
-            // Update the graph elements
-            graphElements.remove(i);
-            graphElements.add(i, tVertex);
-
-            // Add the temporary Vertex to the priority queue
-            priorityQueue.enqueue(tVertex, tVertex.dist);
         }
 
         while(!priorityQueue.isEmpty()){
@@ -241,8 +254,8 @@ public class Graph {
 
             // Determine the distance between the current element and the current elements neighbors
             for(Tile tile: tVertex.neighborhood){
-                nInd = indexOfGElements(tile);
-                nVertex = graphElements.get(nInd);
+                nCoor = coorOfGElements(tile);
+                nVertex = graphElements[nCoor.getX()][nCoor.getY()];
                 altDist = tVertex.dist + nVertex.getValue().weight;
 
                 // If the alternate distance is less than the original Vertex distance, update the graph elements and
@@ -253,8 +266,8 @@ public class Graph {
                     nVertex.prev = tVertex;
 
                     // Update graphElements
-                    graphElements.remove(nInd);
-                    graphElements.add(nInd, nVertex);
+                    graphElements[nCoor.getX()][nCoor.getY()] = nVertex;
+
                     // Update the priority queue
                     try {
                         priorityQueue = decreasePriority(nVertex, priorityQueue);
@@ -312,6 +325,7 @@ public class Graph {
      * @param index the index of the element that's being searched for in the graph
      * @return the XY coordinate of the graph element
      */
+    /*
     private int [] getXYCoordinate(int index){
         int [] xy = new int [2];
 
@@ -322,7 +336,7 @@ public class Graph {
 
         xy[0] = index - cols * xy[1];
         return xy;
-    }
+    }*/
 
     /**
      * Pythagorean theorem to determine the distance between any two XY coordinates
@@ -331,18 +345,18 @@ public class Graph {
      * @param cB xy-coordinates of nobe B
      * @return returns the distance between any 2 points
      */
-    public double distance(int [] cA, int [] cB){
+    public double distance(Coordinate cA, Coordinate cB){
         double a2, b2, c2; // a^2 + b^2 = c^2
 
         // Determine the square of adjacent side
-        a2 = 5 * (cA[0] - cB[0]);
+        a2 = 5 * (cA.getX() - cB.getX());
         a2 = a2 * a2;
-        System.out.print("\ncoordinate-1 (" + cA[0] + ", " + cA[1] + ")\ncoordinate-2 (" + cB[0] + ", " + cB[1] +
-                ")\n a^2: " + a2);
+        System.out.print("\ncoordinate-1 (" + cA.getX() + ", " + cA.getY() + ")\ncoordinate-2 (" + cB.getX() + ", " +
+                cB.getY() + ")\n a^2: " + a2);
 
 
         // Determine the square of opposite side
-        b2 =5 *  (cA[1] - cB[1]);
+        b2 = 5 *  (cA.getY() - cB.getY());
         b2 = b2 * b2;
 
         System.out.print(" b^2: " + b2);
@@ -356,21 +370,23 @@ public class Graph {
         return Math.sqrt(c2);
     }
 
-    /**
-     * Returns index of the Tile if found in the graphElements
-     * @param tile Tile being searched for
-     * @return index of Tile in graphElements, or -1 if not found
-     */
-    private int indexOfGElements(Tile tile){
-        // Travers through graphElements to look for the Tile
-        for(int i = 0; i < graphElements.size(); i++) {
-            // If the Tile is found in the graph element array list, return its index
-            if (tile.tileID.equals(graphElements.get(i).getValue().tileID)) return i;
-        }
 
-        // Return -1, if Tile object is not found in the graphElement arrayList
-        return -1;
+    /**
+     * Returns coordinate of the Tile if found in the graphElements
+     * @param tile Tile being searched for
+     * @return Coordinate of Tile in graphElements, or null if not found
+     */
+    private Coordinate coorOfGElements(Tile tile){
+        // Travers through graphElements to look for the Tile
+        for(int y = 0; y < rows; y++){
+            for(int x = 0; x < cols; x++){
+                if(tile.tileID.equals(graphElements[x][y].getValue().tileID)){ return new Coordinate(x,y); }
+            }
+        }
+        // Return null, if Tile object is not found in the graphElement 2D array
+        return null;
     }
+
 
     /**
      * Return true if a Vertex's element matches the parameter tile

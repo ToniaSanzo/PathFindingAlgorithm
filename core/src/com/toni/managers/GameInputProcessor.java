@@ -1,9 +1,11 @@
 package com.toni.managers;
 
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector3;
+import com.toni.Game;
 
 public class GameInputProcessor implements InputProcessor {
     private Vector3 tp;
@@ -54,20 +56,18 @@ public class GameInputProcessor implements InputProcessor {
         return true;
     }
 
-    @Override
-    public boolean keyDown(int keycode){
-        return false;
-    }
 
     @Override
-    public boolean keyUp(int keycode){
-        return false;
-    }
+    public boolean keyDown(int keycode){return false; }
+
 
     @Override
-    public boolean keyTyped(char character){
-        return false;
-    }
+    public boolean keyUp(int keycode){return false; }
+
+
+    @Override
+    public boolean keyTyped(char character){ return false; }
+
 
     @Override
     public boolean scrolled(int amount){

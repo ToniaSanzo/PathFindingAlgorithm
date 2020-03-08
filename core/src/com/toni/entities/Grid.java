@@ -148,8 +148,8 @@ public class Grid {
             Graph.Vertex vertex;
             trgt = tiles[colCoor][rowCoor];
             setTrgt = false;
-            Stack<Graph.Vertex> vertexStack = graph.aStar(src, trgt);
-            //Stack<Graph.Vertex> vertexStack = graph.dijkstra(src, trgt);
+            //Stack<Graph.Vertex> vertexStack = graph.aStar(src, trgt);
+            Stack<Graph.Vertex> vertexStack = graph.dijkstra(src, trgt);
             while(vertexStack != null && !vertexStack.isEmpty()){
                 vertex = vertexStack.pop();
                 for(int y1 = 0; y1 < rows; y1++){
@@ -255,55 +255,57 @@ public class Grid {
      * Initialize the Graph
      */
     public void initGraph(){
-        Tile [] tiles1D = new Tile[rows * cols];                   // Create a 1D array of tiles
-        ArrayList<Integer> [] nPos = new ArrayList[rows * cols];   // Neighbors position in the 1D array of
+        ArrayList<Coordinate> [][] nPos = new ArrayList[cols][rows];   // Neighbors position in the 2D array of
 
         // Instantiate the nPos array
-        for(int i = 0; i < nPos.length; i++){ nPos[i] = new ArrayList<>(); }
+        for(int x = 0; x < cols; x++){ for(int y = 0; y < rows; y++){ nPos[x][y] = new ArrayList<Coordinate>(); } }
 
         // Init tiles1D and nPos array's to contain valid information
-        for(int y = 0; y < rows; y++){
-            for(int x = 0; x < cols; x++){
-                // Add this to the Tile array
-                tiles1D[convertTo1D(x, y)] = tiles[x][y];
-
+        for(int x = 0; x < cols; x++){
+            for(int y = 0; y < rows; y++){
 
                 // impassable weights don't have neighbors
                 if(tiles[x][y].weight == Tile.INPASSABLE_WEIGHT){ continue; }
 
-                // Determine neighbors:
+                // Determine neighbors
+                // left neighbor:
                 if( x - 1 >= 0){
                     if(tiles[x - 1][y].weight != Tile.INPASSABLE_WEIGHT){
-                        nPos[convertTo1D(x, y)].add(convertTo1D(x - 1, y));
+                        nPos[x][y].add(new Coordinate(x-1, y));
                     }
                 }
 
+                // right neighbor:
                 if( x + 1 < cols){
                     if(tiles[x + 1][y].weight != Tile.INPASSABLE_WEIGHT) {
-                        nPos[convertTo1D(x, y)].add(convertTo1D(x + 1, y));
-                    }
-                }
-                if( y - 1 >= 0){
-                    if(tiles[x][y - 1].weight != Tile.INPASSABLE_WEIGHT){
-                        nPos[convertTo1D(x, y)].add(convertTo1D(x, y - 1));
-                    }
-                }
-                if( y + 1 < rows){
-                    if(tiles[x][y + 1].weight != Tile.INPASSABLE_WEIGHT){
-                        nPos[convertTo1D(x, y)].add(convertTo1D(x, y + 1));
+                        nPos[x][y].add(new Coordinate(x + 1, y));
                     }
                 }
 
-                // Determine teleport neighbors:
+                // below neighbor:
+                if( y - 1 >= 0){
+                    if(tiles[x][y - 1].weight != Tile.INPASSABLE_WEIGHT){
+                        nPos[x][y].add(new Coordinate(x, y - 1));
+                    }
+                }
+
+                // above neighbor:
+                if( y + 1 < rows){
+                    if(tiles[x][y + 1].weight != Tile.INPASSABLE_WEIGHT){
+                        nPos[x][y].add(new Coordinate(x, y + 1));
+                    }
+                }
+
+                // teleport neighbors:
                 for(TeleportTiles tmpTp: tpTiles){
                     if(tmpTp.checkXY(x, y)){
                         int [] tpNeighbor = tmpTp.getXY(x, y);
-                        nPos[convertTo1D(x, y)].add(convertTo1D(tpNeighbor[0], tpNeighbor[1]));
+                        nPos[x][y].add(new Coordinate(tpNeighbor[0], tpNeighbor[1]));
                     }
                 }
             }
         }
-        graph = new Graph(tiles1D, nPos, rows, cols);
+        graph = new Graph(tiles, nPos, rows, cols);
     }
 
 
