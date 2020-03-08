@@ -14,6 +14,8 @@ public class Game extends ApplicationAdapter {
 
 	public static int WIDTH;              // Width of the game-universe
 	public static int HEIGHT;             // Height of the game-universe
+	public static float xpos = 0;
+	public static float ypos = 0;
 
 	public static OrthographicCamera cam; // Camera used to view the game-universe
 	private GameStateManager gsm;
@@ -65,12 +67,22 @@ public class Game extends ApplicationAdapter {
 		if(Gdx.input.isKeyPressed(Input.Keys.UP)){
 			System.out.println("Up");
 			cam.translate(0f,3f,0f);
+			ypos -= 3;
 		}
 
-		if(Gdx.input.isKeyPressed(Input.Keys.DOWN)){ cam.translate(0,-3,0); }
+		if(Gdx.input.isKeyPressed(Input.Keys.DOWN)){
+			cam.translate(0,-3,0);
+			ypos += 3;
+		}
 
-		if(Gdx.input.isKeyPressed(Input.Keys.LEFT)){ cam.translate(-3,0,0); }
+		if(Gdx.input.isKeyPressed(Input.Keys.LEFT)){
+			cam.translate(-3,0,0);
+			xpos += 3;
+		}
 
-		if(Gdx.input.isKeyPressed(Input.Keys.RIGHT)){ cam.translate(3,0,0); }
+		if(Gdx.input.isKeyPressed(Input.Keys.RIGHT)){
+			cam.translate(3,0,0);
+			xpos -= 3;
+		}
 	}
 }

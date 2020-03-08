@@ -55,11 +55,6 @@ public class Graph {
                 // Add the Vertex to the graphElements
                 tVertex = new Vertex(tiles[x][y], toTileArray(nArr[x][y], tiles));
                 graphElements[x][y] = tVertex;
-                System.out.println("graphElements[" + x + "][" + y + "]: " + graphElements[x][y].getValue().tileID +
-                        " Neighborhood: ");
-                for(int i = 0; i < graphElements[x][y].neighborhood.length; i++ ){
-                    System.out.print(graphElements[x][y].neighborhood[i] + " ");
-                }
             }
         }
 
@@ -91,7 +86,7 @@ public class Graph {
      * @param target Tile objects, where the path will end
      * @return Shortest-Path
      */
-    public Stack<Vertex> aStar(Tile source, Tile target){
+    public Stack<Vertex> aStar(Tile source, Tile target) throws Exception{
         FibonacciHeap<Vertex> open = new FibonacciHeap<>(); // The set of nodes to be evaluated
         HashSet<Tile> elemInOpen   = new HashSet<Tile>();      // The set of nodes in open
         HashSet<Tile> closed       = new HashSet<Tile>();      // The set of nodes to be evaluated

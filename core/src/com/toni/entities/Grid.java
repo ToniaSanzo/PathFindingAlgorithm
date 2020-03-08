@@ -7,6 +7,9 @@ import com.badlogic.gdx.math.Vector3;
 import java.util.ArrayList;
 import java.util.Stack;
 
+import static com.toni.Game.xpos;
+import static com.toni.Game.ypos;
+
 public class Grid {
 
     public static class TeleportTiles{
@@ -111,19 +114,21 @@ public class Grid {
     public void getTile(Vector3 v3){
         if(setSrc){
             int colCoor = 0, rowCoor = 0;
-            float x = v3.x/tileWidth;   //
+            float x = v3.x/tileWidth;
             float y = v3.y/tileHeight;
 
             // Determine x-index
             for(int i = 0; i < cols; i++){
-                if((float)i <= x && x < (float)i + 1f){ colCoor = i; }
+                if((float)i <= x && x < (float)i + 1f){ colCoor = i - (int)xpos; }
             }
 
             // Determine y-index
             for(int j = 0; j < rows; j++){
-                if((float)j <= y && y < (float)j + 1f){ rowCoor = j; }
+                if((float)j <= y && y < (float)j + 1f){ rowCoor = j - (int)ypos; }
             }
 
+
+            if((colCoor < 0 || colCoor > cols) || (rowCoor < 0 || rowCoor > rows) ){ return; }
             src = tiles[colCoor][rowCoor];
             setSrc = false;
             setTrgt = true;
@@ -137,19 +142,27 @@ public class Grid {
             float y = v3.y/tileHeight;
             // Determine x-index
             for(int i = 0; i < cols; i++){
-                if((float)i <= x && x < (float)i + 1f) { colCoor = i; }
+                if((float)i <= x && x < (float)i + 1f) { colCoor = i - (int)xpos; }
             }
 
             // Determine y-index
             for(int j = 0; j < rows; j++){
-                if(((float)j <= y) && y <= (float)j + 1f){ rowCoor = j; }
+                if(((float)j <= y) && y <= (float)j + 1f){ rowCoor = j - (int)ypos; }
             }
 
+            if((colCoor < 0 || colCoor > cols) || (rowCoor < 0 || rowCoor > rows) ){ return; }
             Graph.Vertex vertex;
             trgt = tiles[colCoor][rowCoor];
             setTrgt = false;
-            //Stack<Graph.Vertex> vertexStack = graph.aStar(src, trgt);
-            Stack<Graph.Vertex> vertexStack = graph.dijkstra(src, trgt);
+
+            Stack<Graph.Vertex> vertexStack;
+
+            try {
+                vertexStack = graph.aStar(src, trgt);
+            } catch(Exception ex){
+                vertexStack = null;
+            }
+            //Stack<Graph.Vertex> vertexStack = graph.dijkstra(src, trgt);
             while(vertexStack != null && !vertexStack.isEmpty()){
                 vertex = vertexStack.pop();
                 for(int y1 = 0; y1 < rows; y1++){
@@ -204,6 +217,9 @@ public class Grid {
         }
         tileWidth = Gdx.graphics.getWidth()/ (float)cols;
         tileHeight = Gdx.graphics.getHeight()/ (float)rows;
+
+        if(tileWidth < 1) tileWidth = 1;
+        if(tileHeight < 1) tileHeight = 1;
         tiles = new Tile[cols][rows];
     }
 
@@ -324,6 +340,9 @@ public class Grid {
     public void update(){
         tileWidth = (float)Gdx.graphics.getWidth()/ (float)cols;
         tileHeight = (float)Gdx.graphics.getHeight()/ (float)rows;
+
+        if(tileWidth < 1) tileWidth = 1;
+        if(tileHeight < 1) tileHeight = 1;
     }
 
 

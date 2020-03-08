@@ -22,7 +22,7 @@ public class PlayState extends GameState {
     public void init(){
         try{
             String gridStr = "";
-            File file = new File(Paths.get("core/assets/grid.txt").toAbsolutePath().toString());
+            File file = new File(Paths.get("core/assets/grid1.txt").toAbsolutePath().toString());
             Scanner scan = new Scanner(file);
             while(scan.hasNextLine()){ gridStr = gridStr.concat(scan.nextLine()).concat("\n"); }
             sr = new ShapeRenderer();
